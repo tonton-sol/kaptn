@@ -19,16 +19,17 @@ use spl_transfer_hook_interface::{
     instruction::{ExecuteInstruction, TransferHookInstruction},
 };
 
-pub use kaptn_syn::transfer_hook;
+pub use kaptn_syn::{transfer_hook, ExtraMetas};
 
-pub struct TransferContext<'a, 'b> {
+pub struct TransferContext<'a, 'info, E> {
     pub program_id: &'a Pubkey,
-    pub source_account: &'a AccountInfo<'b>,
-    pub mint: &'a AccountInfo<'b>,
-    pub destination_account: &'a AccountInfo<'b>,
-    pub authority: &'a AccountInfo<'b>,
-    pub extra_account_metas: &'a AccountInfo<'b>,
+    pub source_account: &'a AccountInfo<'info>,
+    pub mint: &'a AccountInfo<'info>,
+    pub destination_account: &'a AccountInfo<'info>,
+    pub authority: &'a AccountInfo<'info>,
+    pub extra_account_metas: &'a AccountInfo<'info>,
     pub amount: u64,
+    pub extra_metas: E,
 }
 
 fn check_token_account_is_transferring(account_info: &AccountInfo) -> Result<(), ProgramError> {
@@ -42,11 +43,11 @@ fn check_token_account_is_transferring(account_info: &AccountInfo) -> Result<(),
     }
 }
 
-fn process_execute(
+fn process_execute<'info, E: ExtraMetas<'info>>(
     program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    accounts: &[AccountInfo<'info>],
     amount: u64,
-    process_transfer: fn(TransferContext) -> ProgramResult,
+    process_transfer: fn(TransferContext<'_, 'info, E>) -> ProgramResult,
 ) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
 
@@ -73,6 +74,8 @@ fn process_execute(
         &data,
     )?;
 
+    let extra_metas = E::from_accounts(accounts)?;
+
     let ctx = TransferContext {
         program_id,
         source_account: source_account_info,
@@ -81,6 +84,7 @@ fn process_execute(
         authority: authority_info,
         extra_account_metas: extra_account_metas_info,
         amount,
+        extra_metas,
     };
 
     process_transfer(ctx)
@@ -192,12 +196,17 @@ fn process_update_extra_account_meta_list(
     Ok(())
 }
 
+pub trait ExtraMetas<'info>: Sized {
+    fn from_accounts(accounts: &[AccountInfo<'info>]) -> Result<Self, ProgramError>;
+    fn to_extra_account_metas() -> Vec<ExtraAccountMeta>;
+}
+
 #[doc(hidden)]
-pub fn __process_instruction(
+pub fn __process_instruction<'info, E: ExtraMetas<'info>>(
     program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    accounts: &[AccountInfo<'info>],
     instruction_data: &[u8],
-    process_transfer: fn(TransferContext) -> ProgramResult,
+    process_transfer: fn(TransferContext<E>) -> ProgramResult,
 ) -> ProgramResult {
     let instruction = TransferHookInstruction::unpack(instruction_data)?;
 
@@ -224,7 +233,7 @@ pub fn __process_instruction(
 /// The prelude contains all commonly used components of the crate.
 /// All programs should include it via `use kaptn_lang::prelude::*;`.
 pub mod prelude {
-    pub use super::{transfer_hook, TransferContext};
+    pub use super::{transfer_hook, ExtraMetas, TransferContext};
     pub use solana_program::{
         account_info::{next_account_info, AccountInfo},
         clock::Clock,
@@ -238,5 +247,6 @@ pub mod prelude {
         system_instruction,
         sysvar::Sysvar,
     };
+    pub use spl_tlv_account_resolution::account::ExtraAccountMeta;
     pub use spl_transfer_hook_interface::error::TransferHookError;
 }
