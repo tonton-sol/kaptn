@@ -21,7 +21,7 @@ use spl_transfer_hook_interface::{
 
 pub use kaptn_syn::{transfer_hook, ExtraMetas};
 
-pub struct TransferContext<'a, 'info, E> {
+pub struct TransferContext<'a, 'info, E = ()> {
     pub program_id: &'a Pubkey,
     pub source_account: &'a AccountInfo<'info>,
     pub mint: &'a AccountInfo<'info>,
@@ -30,6 +30,21 @@ pub struct TransferContext<'a, 'info, E> {
     pub extra_account_metas: &'a AccountInfo<'info>,
     pub amount: u64,
     pub extra_metas: E,
+}
+
+pub trait ExtraMetas<'info>: Sized {
+    fn from_accounts(accounts: &[AccountInfo<'info>]) -> Result<Self, ProgramError>;
+    fn to_extra_account_metas() -> Vec<ExtraAccountMeta>;
+}
+
+impl<'info> ExtraMetas<'info> for () {
+    fn from_accounts(_accounts: &[AccountInfo<'info>]) -> Result<Self, ProgramError> {
+        Ok(())
+    }
+
+    fn to_extra_account_metas() -> Vec<ExtraAccountMeta> {
+        vec![]
+    }
 }
 
 fn check_token_account_is_transferring(account_info: &AccountInfo) -> Result<(), ProgramError> {
@@ -66,13 +81,14 @@ fn process_execute<'info, E: ExtraMetas<'info>>(
     }
 
     let data = extra_account_metas_info.try_borrow_data()?;
-
-    ExtraAccountMetaList::check_account_infos::<ExecuteInstruction>(
-        accounts,
-        &TransferHookInstruction::Execute { amount }.pack(),
-        program_id,
-        &data,
-    )?;
+    if !data.is_empty() {
+        ExtraAccountMetaList::check_account_infos::<ExecuteInstruction>(
+            accounts,
+            &TransferHookInstruction::Execute { amount }.pack(),
+            program_id,
+            &data,
+        )?;
+    }
 
     let extra_metas = E::from_accounts(accounts)?;
 
@@ -194,11 +210,6 @@ fn process_update_extra_account_meta_list(
     }
 
     Ok(())
-}
-
-pub trait ExtraMetas<'info>: Sized {
-    fn from_accounts(accounts: &[AccountInfo<'info>]) -> Result<Self, ProgramError>;
-    fn to_extra_account_metas() -> Vec<ExtraAccountMeta>;
 }
 
 #[doc(hidden)]

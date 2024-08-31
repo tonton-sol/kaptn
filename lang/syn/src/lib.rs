@@ -23,7 +23,7 @@ pub fn transfer_hook(_attr: TokenStream, item: TokenStream) -> TokenStream {
             accounts: &[solana_program::account_info::AccountInfo],
             instruction_data: &[u8],
         ) -> solana_program::entrypoint::ProgramResult {
-            kaptn_lang::__process_instruction::<MyExtraMetas>(program_id, accounts, instruction_data, #fn_name)
+            kaptn_lang::__process_instruction(program_id, accounts, instruction_data, #fn_name)
         }
     };
 
