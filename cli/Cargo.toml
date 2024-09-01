@@ -1,0 +1,10 @@
+[package]
+name = "kaptn-cli"
+version = "0.1.0"
+edition = "2021"
+description = "Macros for Kaptn Transfer-Hook Framework"
+repository = "https://github.com/tonton-sol/kaptn"
+
+
+[dependencies]
+clap = { version = "4.5.16", features = ["derive"] }
