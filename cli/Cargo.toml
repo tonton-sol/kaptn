@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "CLI for the Kaptn Transfer-Hook Framework"
 repository = "https://github.com/tonton-sol/kaptn"
-
+license = "Apache-2.0"
 
 [dependencies]
 clap = { version = "4.5.16", features = ["derive"] }
