@@ -2,6 +2,7 @@
 name = "kaptn-macros"
 version = "0.1.0"
 description = "Macros for Kaptn Transfer Hook Framework"
+repository = "https://github.com/tonton-sol/kaptn"
 license = "Apache-2.0"
 edition = "2021"
 
