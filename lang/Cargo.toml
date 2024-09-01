@@ -1,7 +1,8 @@
 [package]
 name = "kaptn-lang"
 version = "0.1.0"
-description = "Kaptn Transfer Hook Framework"
+description = "Kaptn Transfer-Hook Framework"
+repository = "https://github.com/tonton-sol/kaptn"
 license = "Apache-2.0"
 edition = "2021"
 
