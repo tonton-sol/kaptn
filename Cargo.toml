@@ -1,4 +1,4 @@
 [workspace]
-members = ["lang", "lang/syn"]
+members = ["lang", "lang/macros"]
 
 resolver = "2"
