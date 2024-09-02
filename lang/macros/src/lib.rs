@@ -45,6 +45,7 @@ pub fn derive_extra_metas(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
 
+    // Extract lifetimes
     let lifetimes: Vec<_> = input
         .generics
         .params
@@ -58,6 +59,10 @@ pub fn derive_extra_metas(input: TokenStream) -> TokenStream {
         })
         .collect();
 
+    // Determine if the 'info lifetime is present
+    let has_info_lifetime = lifetimes.iter().any(|lt| lt.to_string() == "'info");
+
+    // Extract fields
     let fields = if let Data::Struct(data_struct) = &input.data {
         if let Fields::Named(fields) = &data_struct.fields {
             fields.named.iter().collect::<Vec<_>>()
@@ -68,6 +73,7 @@ pub fn derive_extra_metas(input: TokenStream) -> TokenStream {
         vec![]
     };
 
+    // Process account metas
     let account_metas = fields
         .iter()
         .filter_map(|f| {
@@ -82,23 +88,62 @@ pub fn derive_extra_metas(input: TokenStream) -> TokenStream {
         .filter_map(|f| f.ident.as_ref())
         .collect::<Vec<_>>();
 
-    let from_accounts = quote! {
-        fn from_accounts(accounts: &[AccountInfo<'info>]) -> Result<Self, ProgramError> {
-            let mut iter = accounts.iter().skip(5); // Skip the first 5 accounts
-            Ok(Self {
-                #(#field_names: iter.next().ok_or(ProgramError::NotEnoughAccountKeys)?.clone(),)*
-            })
+    // Generate from_accounts method
+    let from_accounts = if has_info_lifetime {
+        quote! {
+            fn from_accounts(accounts: &[AccountInfo<'info>]) -> Result<Self, ProgramError> {
+                let mut iter = accounts.iter().skip(5); // Adjust as needed
+                Ok(Self {
+                    #(#field_names: iter.next().ok_or(ProgramError::NotEnoughAccountKeys)?.clone(),)*
+                })
+            }
+        }
+    } else {
+        quote! {
+            fn from_accounts(accounts: &[AccountInfo]) -> Result<Self, ProgramError> {
+                let mut iter = accounts.iter().skip(5); // Adjust as needed
+                Ok(Self {
+                    #(#field_names: iter.next().ok_or(ProgramError::NotEnoughAccountKeys)?.clone(),)*
+                })
+            }
         }
     };
 
-    let gen = quote! {
-        impl<#(#lifetimes),*> ExtraMetas<#(#lifetimes),*> for #name<#(#lifetimes),*> {
-            #from_accounts
+    // Generate trait implementation
+    let gen = if has_info_lifetime {
+        quote! {
+            impl<#(#lifetimes),*> ExtraMetas<#(#lifetimes),*> for #name<#(#lifetimes),*> {
+                #from_accounts
 
-            fn to_extra_account_metas() -> Vec<ExtraAccountMeta> {
-                vec![
-                    #(#account_metas),*
-                ]
+                fn to_extra_account_metas() -> Vec<ExtraAccountMeta> {
+                    vec![
+                        #(#account_metas),*
+                    ]
+                }
+            }
+        }
+    } else if !lifetimes.is_empty() {
+        quote! {
+            impl<#(#lifetimes),*> ExtraMetas<'_, #(#lifetimes),*> for #name<#(#lifetimes),*> {
+                #from_accounts
+
+                fn to_extra_account_metas() -> Vec<ExtraAccountMeta> {
+                    vec![
+                        #(#account_metas),*
+                    ]
+                }
+            }
+        }
+    } else {
+        quote! {
+            impl ExtraMetas<'_> for #name {
+                #from_accounts
+
+                fn to_extra_account_metas() -> Vec<ExtraAccountMeta> {
+                    vec![
+                        #(#account_metas),*
+                    ]
+                }
             }
         }
     };
