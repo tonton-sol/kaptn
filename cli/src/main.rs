@@ -74,7 +74,7 @@ kaptn-lang = "0.1.0"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = {}
+name = "{}"
 "#,
         name, name
     );
@@ -89,10 +89,13 @@ name = {}
         r#"use kaptn_lang::prelude::*;
 
 #[transfer_hook]
-pub fn {}(ctx: TransferContext<()>) -> ProgramResult {{
+pub fn {}(ctx: TransferContext<MyExtraMetas>) -> ProgramResult {{
     msg!("Transfer hook called!");
     Ok(())
 }}
+
+#[derive(ExtraMetas)]
+pub struct MyExtraMetas {{}}
 "#,
         name.replace('-', "_")
     );
