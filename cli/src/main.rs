@@ -1,6 +1,10 @@
 use clap::{Arg, Command};
+use heck::ToSnakeCase;
+use solana_sdk::pubkey::Pubkey;
+use solana_sdk::signature::{read_keypair_file, write_keypair_file, Keypair};
+use solana_sdk::signer::Signer;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
 
 fn main() {
@@ -62,7 +66,52 @@ fn create_new_project(path: &str, name: &str) -> Result<(), Box<dyn std::error::
     std::env::set_current_dir(path)?;
 
     // Create Cargo.toml
-    let cargo_toml_content = format!(
+    let cargo_toml_content = create_cargo_toml_content(name);
+
+    fs::write("Cargo.toml", cargo_toml_content)?;
+
+    // Create src directory
+    fs::create_dir_all("src")?;
+
+    // Create the program file
+    let lib_rs_content = create_program_content(name);
+
+    fs::write("src/lib.rs", lib_rs_content)?;
+
+    println!("Kaptn project '{}' created successfully at: {}", name, path);
+    Ok(())
+}
+
+pub fn get_or_create_program_id(name: &str) -> Pubkey {
+    let keypair_path = Path::new("target")
+        .join("deploy")
+        .join(format!("{}-keypair.json", name.to_snake_case()));
+
+    read_keypair_file(&keypair_path)
+        .unwrap_or_else(|_| {
+            let keypair = Keypair::new();
+            write_keypair_file(&keypair, keypair_path).expect("Unable to create program keypair");
+            keypair
+        })
+        .pubkey()
+}
+
+pub fn get_or_create_mint_id(name: &str) -> Pubkey {
+    let keypair_path = Path::new("target")
+        .join("deploy")
+        .join(format!("{}-mint-keypair.json", name.to_snake_case()));
+
+    read_keypair_file(&keypair_path)
+        .unwrap_or_else(|_| {
+            let keypair = Keypair::new();
+            write_keypair_file(&keypair, keypair_path).expect("Unable to create mint keypair");
+            keypair
+        })
+        .pubkey()
+}
+
+pub fn create_cargo_toml_content(name: &str) -> String {
+    format!(
         r#"[package]
 name = "{}"
 version = "0.1.0"
@@ -76,17 +125,17 @@ kaptn-lang = "0.1.0"
 crate-type = ["cdylib", "lib"]
 name = "{}"
 "#,
-        name, name
-    );
+        name,
+        name.to_snake_case()
+    )
+}
 
-    fs::write("Cargo.toml", cargo_toml_content)?;
-
-    // Create src directory
-    fs::create_dir_all("src")?;
-
-    // Create the program file
-    let lib_rs_content = format!(
+pub fn create_program_content(name: &str) -> String {
+    format!(
         r#"use kaptn_lang::prelude::*;
+
+declare_id!("{}");
+declare_mint!("{}");
 
 #[transfer_hook]
 pub fn {}(ctx: TransferContext<MyExtraMetas>) -> ProgramResult {{
@@ -97,11 +146,8 @@ pub fn {}(ctx: TransferContext<MyExtraMetas>) -> ProgramResult {{
 #[derive(ExtraMetas)]
 pub struct MyExtraMetas {{}}
 "#,
-        name.replace('-', "_")
-    );
-
-    fs::write("src/lib.rs", lib_rs_content)?;
-
-    println!("Kaptn project '{}' created successfully at: {}", name, path);
-    Ok(())
+        get_or_create_program_id(name),
+        get_or_create_mint_id(name),
+        name.to_snake_case()
+    )
 }

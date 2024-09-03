@@ -19,7 +19,7 @@ use spl_transfer_hook_interface::{
     instruction::{ExecuteInstruction, TransferHookInstruction},
 };
 
-pub use kaptn_macros::{transfer_hook, ExtraMetas};
+pub use kaptn_macros::{declare_id, declare_mint, transfer_hook, ExtraMetas};
 
 pub struct TransferContext<'a, 'info, E = ()> {
     pub program_id: &'a Pubkey,
@@ -244,7 +244,7 @@ pub fn __process_instruction<'info, E: ExtraMetas<'info>>(
 /// The prelude contains all commonly used components of the crate.
 /// All programs should include it via `use kaptn_lang::prelude::*;`.
 pub mod prelude {
-    pub use super::{transfer_hook, ExtraMetas, TransferContext};
+    pub use super::{declare_id, declare_mint, transfer_hook, ExtraMetas, TransferContext};
     pub use solana_program::{
         account_info::{next_account_info, AccountInfo},
         clock::Clock,
@@ -260,4 +260,5 @@ pub mod prelude {
     };
     pub use spl_tlv_account_resolution::account::ExtraAccountMeta;
     pub use spl_transfer_hook_interface::error::TransferHookError;
+    pub use std::str::FromStr;
 }

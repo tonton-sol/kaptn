@@ -882,6 +882,8 @@ name = "kaptn-cli"
 version = "0.1.1"
 dependencies = [
  "clap",
+ "heck",
+ "solana-sdk",
 ]
 
 [[package]]
@@ -1025,6 +1027,14 @@ dependencies = [
  "keccak",
  "rand_core 0.6.4",
  "zeroize",
+]
+
+[[package]]
+name = "myhook"
+version = "0.1.0"
+dependencies = [
+ "kaptn-lang",
+ "solana-program",
 ]
 
 [[package]]
