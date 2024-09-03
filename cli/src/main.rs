@@ -114,7 +114,7 @@ pub fn create_cargo_toml_content(name: &str) -> String {
     format!(
         r#"[package]
 name = "{}"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2021"
 
 [dependencies]
