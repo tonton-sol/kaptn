@@ -1,4 +1,4 @@
 [workspace]
-members = ["cli", "lang", "lang/macros", "examples"]
+members = ["cli", "lang", "lang/macros", "examples/*"]
 
 resolver = "2"
