@@ -153,7 +153,7 @@ pub fn derive_extra_metas(input: TokenStream) -> TokenStream {
 }
 
 fn parse_meta_attribute(
-    ident: &syn::Ident,
+    _ident: &syn::Ident,
     attr: &Attribute,
 ) -> syn::Result<proc_macro2::TokenStream> {
     let meta = attr.parse_meta()?;
