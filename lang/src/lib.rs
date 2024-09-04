@@ -196,6 +196,7 @@ fn process_update_extra_account_meta_list(
     }
 
     let length = extra_account_metas.len();
+    msg!("length: {}", length);
     let account_size = ExtraAccountMetaList::size_of(length)?;
     if account_size >= original_account_size {
         extra_account_metas_info.realloc(account_size, false)?;
@@ -227,16 +228,22 @@ pub fn __process_instruction<'info, E: ExtraMetas<'info>>(
             process_execute(program_id, accounts, amount, process_transfer)
         }
         TransferHookInstruction::InitializeExtraAccountMetaList {
-            extra_account_metas,
+            extra_account_metas: _,
         } => {
             msg!("Instruction: InitializeExtraAccountMetaList");
-            process_initialize_extra_account_meta_list(program_id, accounts, &extra_account_metas)
+
+            // Directly use the extra metas from the user's struct, bypassing accounts
+            let user_extra_metas = E::to_extra_account_metas(); // Generate metas from user struct
+            process_initialize_extra_account_meta_list(program_id, accounts, &user_extra_metas)
         }
         TransferHookInstruction::UpdateExtraAccountMetaList {
-            extra_account_metas,
+            extra_account_metas: _,
         } => {
             msg!("Instruction: UpdateExtraAccountMetaList");
-            process_update_extra_account_meta_list(program_id, accounts, &extra_account_metas)
+
+            // Directly use the extra metas from the user's struct, bypassing accounts
+            let user_extra_metas = E::to_extra_account_metas(); // Generate metas from user struct
+            process_update_extra_account_meta_list(program_id, accounts, &user_extra_metas)
         }
     }
 }
