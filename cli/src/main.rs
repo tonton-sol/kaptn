@@ -5,7 +5,8 @@ use solana_sdk::signature::{read_keypair_file, write_keypair_file, Keypair};
 use solana_sdk::signer::Signer;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process;
+use std::process::{self, Stdio};
+use toml::Value;
 
 fn main() {
     let matches = Command::new("Kaptn CLI")
@@ -27,6 +28,8 @@ fn main() {
                         .required(false),
                 ),
         )
+        .subcommand(Command::new("create-extra-metas").about("Create the extra account metas"))
+        .subcommand(Command::new("update-extra-metas").about("Update the extra account metas"))
         .get_matches();
 
     match matches.subcommand() {
@@ -47,6 +50,66 @@ fn main() {
             if let Err(err) = create_new_project(path, &name) {
                 eprintln!("Error creating project: {}", err);
                 process::exit(1);
+            }
+        }
+        Some(("create-extra-metas", _)) => {
+            println!("Creating extra account metas...");
+            let name = get_project_name().unwrap();
+
+            let program_keypair_filepath =
+                Path::new("target/deploy").join(format!("{}-keypair.json", name.to_snake_case()));
+            let mint_keypair_filepath = Path::new("target/deploy")
+                .join(format!("{}-mint-keypair.json", name.to_snake_case()));
+
+            let program_keypair = read_keypair_file(&program_keypair_filepath).unwrap();
+            let mint_keypair = read_keypair_file(&mint_keypair_filepath).unwrap();
+
+            let program_pubkey = program_keypair.pubkey();
+            let mint_pubkey = mint_keypair.pubkey();
+
+            let exit = std::process::Command::new("spl-transfer-hook")
+                .arg("create-extra-metas")
+                .arg(program_pubkey.to_string())
+                .arg(mint_pubkey.to_string())
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit())
+                .output()
+                .expect("Must create extra metas");
+
+            // Check if deployment was successful
+            if !exit.status.success() {
+                println!("There was a problem creating extra metas: {exit:?}.");
+                std::process::exit(exit.status.code().unwrap_or(1));
+            }
+        }
+        Some(("update-extra-metas", _)) => {
+            println!("Updating extra account metas...");
+            let name = get_project_name().unwrap();
+
+            let program_keypair_filepath =
+                Path::new("target/deploy").join(format!("{}-keypair.json", name.to_snake_case()));
+            let mint_keypair_filepath = Path::new("target/deploy")
+                .join(format!("{}-mint-keypair.json", name.to_snake_case()));
+
+            let program_keypair = read_keypair_file(&program_keypair_filepath).unwrap();
+            let mint_keypair = read_keypair_file(&mint_keypair_filepath).unwrap();
+
+            let program_pubkey = program_keypair.pubkey();
+            let mint_pubkey = mint_keypair.pubkey();
+
+            let exit = std::process::Command::new("spl-transfer-hook")
+                .arg("update-extra-metas")
+                .arg(program_pubkey.to_string())
+                .arg(mint_pubkey.to_string())
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit())
+                .output()
+                .expect("Must update extra metas");
+
+            // Check if deployment was successful
+            if !exit.status.success() {
+                println!("There was a problem creating extra metas: {exit:?}.");
+                std::process::exit(exit.status.code().unwrap_or(1));
             }
         }
         _ => {
@@ -150,4 +213,25 @@ pub struct MyExtraMetas {{}}
         get_or_create_mint_id(name),
         name.to_snake_case()
     )
+}
+
+fn get_project_name() -> Option<String> {
+    // Determine the path to Cargo.toml
+    let current_dir = std::env::current_dir().expect("Failed to get current directory");
+    let cargo_toml_path = current_dir.join("Cargo.toml");
+
+    // Read the Cargo.toml file
+    let cargo_toml_content =
+        fs::read_to_string(&cargo_toml_path).expect("Failed to read Cargo.toml");
+
+    // Parse the Cargo.toml content
+    let cargo_toml: Value =
+        toml::from_str(&cargo_toml_content).expect("Failed to parse Cargo.toml");
+
+    // Extract the project name from [package] section
+    cargo_toml
+        .get("package")
+        .and_then(|package| package.get("name"))
+        .and_then(|name| name.as_str())
+        .map(|name| name.to_string())
 }
