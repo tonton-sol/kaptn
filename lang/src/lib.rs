@@ -19,7 +19,9 @@ use spl_transfer_hook_interface::{
     instruction::{ExecuteInstruction, TransferHookInstruction},
 };
 
-pub use kaptn_macros::{declare_id, declare_mint, transfer_hook, ExtraMetas};
+pub use kaptn_attribute_transfer_hook::transfer_hook;
+pub use kaptn_derive_extrametas::ExtraMetas;
+pub use kaptn_macros::{declare_id, declare_mint};
 
 pub struct TransferContext<'a, 'info, E = ()> {
     pub program_id: &'a Pubkey,
