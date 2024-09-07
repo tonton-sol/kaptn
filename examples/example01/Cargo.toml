@@ -1,5 +1,5 @@
 [package]
-name = "hello-world"
+name = "ahoy-world"
 version = "0.2.3"
 description = "Created with Kaptn"
 edition = "2021"
@@ -9,4 +9,4 @@ kaptn-lang = { path = "../../lang" }
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "hello_world"
+name = "ahoy_world"
