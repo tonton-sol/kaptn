@@ -1,11 +1,11 @@
 [package]
 name = "hello-world"
-version = "0.2.1"
+version = "0.2.2"
 description = "Created with Kaptn"
 edition = "2021"
 
 [dependencies]
-kaptn-lang = { version = "0.2.1" }
+kaptn-lang = { version = "0.2.2" }
 solana-program = "2.0.8"
 
 [lib]
