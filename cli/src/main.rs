@@ -179,11 +179,11 @@ pub fn create_cargo_toml_content(name: &str) -> String {
     format!(
         r#"[package]
 name = "{}"
-version = "0.1.2"
+version = "0.1.0"
+description = "Created with Kaptn"
 edition = "2021"
 
 [dependencies]
-solana-program = "2.0.8"
 kaptn-lang = "{}" 
 
 [lib]
@@ -205,7 +205,7 @@ declare_mint!("{}");
 
 #[transfer_hook]
 pub fn {}(ctx: TransferContext<MyExtraMetas>) -> ProgramResult {{
-    msg!("Transfer hook called!");
+    msg!("Hello from transfer-hook program: {{:?}}", ctx.program_id);
     Ok(())
 }}
 
