@@ -45,17 +45,18 @@ This will produce a lib.rs file that looks like this:
 ```rust
 use kaptn_lang::prelude::*;
 
-declare_id!("FVcFz6auGqMvAAcGyYf4RDUq9P3gAPvKCUsYfRSHFGup");
-declare_mint!("Eux51z9kgh6ViFkiiCuL8nzrc8pjL8U82PGKm8Rxic6m");
+declare_id!("5H4LbTCzkudomL3ocLttgLFtHWvpbiadS1DhPGvo2XYh");
+declare_mint!("FQf33CHwMZY4TYo6RP5CuTXUCVs8YFJH1MreMYtHiPhi");
 
 #[transfer_hook]
-pub fn my_project(ctx: TransferContext<MyExtraMetas>) -> ProgramResult {
-    msg!("Transfer hook called!");
+pub fn hello_world(ctx: TransferContext<MyExtraMetas>) -> ProgramResult {
+    msg!("Ahoy from transfer-hook program: {:?}", ctx.program_id);
     Ok(())
 }
 
 #[derive(ExtraMetas)]
 pub struct MyExtraMetas {}
+
 
 ```
 Here we can see a few things:
