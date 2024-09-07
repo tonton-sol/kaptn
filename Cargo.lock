@@ -879,7 +879,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-attribute-transfer-hook"
-version = "0.1.0"
+version = "0.1.5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -888,7 +888,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-cli"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "clap",
  "heck",
@@ -898,7 +898,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-derive-extrametas"
-version = "0.1.0"
+version = "0.1.5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -907,7 +907,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-lang"
-version = "0.1.3"
+version = "0.1.5"
 dependencies = [
  "arrayref",
  "kaptn-attribute-transfer-hook",
@@ -922,7 +922,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-macros"
-version = "0.1.3"
+version = "0.1.5"
 dependencies = [
  "proc-macro2",
  "quote",
