@@ -878,15 +878,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kaptn-attribute-meta"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "kaptn-attribute-transfer-hook"
 version = "0.1.0"
 dependencies = [
@@ -909,7 +900,6 @@ dependencies = [
 name = "kaptn-derive-extrametas"
 version = "0.1.0"
 dependencies = [
- "kaptn-attribute-meta",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
