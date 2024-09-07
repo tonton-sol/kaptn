@@ -1,6 +1,6 @@
 [package]
 name = "kaptn-lang"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Kaptn Transfer-Hook Framework"
 repository = "https://github.com/tonton-sol/kaptn"
@@ -13,9 +13,9 @@ arrayref = "0.3.8"
 solana-program = "2.0.3"
 spl-token-2022 = { version = "4.0.1", features = ["no-entrypoint"] }
 spl-type-length-value = "0.5.0"
-kaptn-macros = { version = "0.2.0", path = "macros" }
-kaptn-attribute-transfer-hook = { version = "0.2.0", path = "attribute/transfer_hook" }
-kaptn-derive-extrametas = { version = "0.2.0", path = "derive/extrametas" }
+kaptn-macros = { version = "0.2.1" }
+kaptn-attribute-transfer-hook = { version = "0.2.1" }
+kaptn-derive-extrametas = { version = "0.2.1" }
 
 [lib]
 crate-type = ["cdylib", "lib"]
