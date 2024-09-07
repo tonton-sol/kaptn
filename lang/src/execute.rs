@@ -16,7 +16,7 @@ pub fn process_execute<'info, E: ExtraMetas<'info>>(
     program_id: &Pubkey,
     accounts: &[AccountInfo<'info>],
     amount: u64,
-    process_transfer: fn(TransferContext<E>) -> ProgramResult,
+    process_transfer: fn(TransferContext<'_, 'info, E>) -> ProgramResult,
 ) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
 
