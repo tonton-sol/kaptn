@@ -205,7 +205,7 @@ declare_mint!("{}");
 
 #[transfer_hook]
 pub fn {}(ctx: TransferContext<MyExtraMetas>) -> ProgramResult {{
-    msg!("Hello from transfer-hook program: {{:?}}", ctx.program_id);
+    msg!("Ahoy from transfer-hook program: {{:?}}", ctx.program_id);
     Ok(())
 }}
 
