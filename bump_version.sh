@@ -21,10 +21,19 @@ esac
 for toml in $(find . -name "Cargo.toml"); do
     # Update the package version in the `[package]` section
     sed "${sedi[@]}" -e "/\[package\]/,/^\[/ s/version = \".*\"/version = \"$version\"/" $toml
-    
-    # Update dependencies on Kaptn crates in the `[dependencies]` or `[dev-dependencies]` sections
-    sed "${sedi[@]}" -e "/\[dependencies\]/,/^\[/ s/kaptn-.*/kaptn-\*: \"$version\"/" $toml
-    sed "${sedi[@]}" -e "/\[dev-dependencies\]/,/^\[/ s/kaptn-.*/kaptn-\*: \"$version\"/" $toml
+
+    # Update dependencies on Kaptn crates in the `[dependencies]`, `[dev-dependencies]`, and `[build-dependencies]` sections
+    sed "${sedi[@]}" -e "/\[dependencies\]/,/^\[/ s/\(kaptn-[a-zA-Z0-9_-]*\) = { version = \".*\"/\1 = { version = \"$version\"/" $toml
+    sed "${sedi[@]}" -e "/\[dev-dependencies\]/,/^\[/ s/\(kaptn-[a-zA-Z0-9_-]*\) = { version = \".*\"/\1 = { version = \"$version\"/" $toml
+    sed "${sedi[@]}" -e "/\[build-dependencies\]/,/^\[/ s/\(kaptn-[a-zA-Z0-9_-]*\) = { version = \".*\"/\1 = { version = \"$version\"/" $toml
+
+    # Also catch cases where dependencies are specified without `{ version = ... }` syntax (just with a version)
+    sed "${sedi[@]}" -e "/\[dependencies\]/,/^\[/ s/\(kaptn-[a-zA-Z0-9_-]*\) = \".*\"/\1 = \"$version\"/" $toml
+    sed "${sedi[@]}" -e "/\[dev-dependencies\]/,/^\[/ s/\(kaptn-[a-zA-Z0-9_-]*\) = \".*\"/\1 = \"$version\"/" $toml
+    sed "${sedi[@]}" -e "/\[build-dependencies\]/,/^\[/ s/\(kaptn-[a-zA-Z0-9_-]*\) = \".*\"/\1 = \"$version\"/" $toml
 done
 
-echo "Version updated to $version in Kaptn crates."
+# Update the VERSION file
+echo $version > VERSION
+
+echo "Version updated to $version in Kaptn crates and VERSION file."
