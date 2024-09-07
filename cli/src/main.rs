@@ -8,6 +8,8 @@ use std::path::{Path, PathBuf};
 use std::process::{self, Stdio};
 use toml::Value;
 
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 fn main() {
     let matches = Command::new("Kaptn CLI")
         .version("0.1.0")
@@ -182,13 +184,14 @@ edition = "2021"
 
 [dependencies]
 solana-program = "2.0.8"
-kaptn-lang = "0.1.0" 
+kaptn-lang = "{}" 
 
 [lib]
 crate-type = ["cdylib", "lib"]
 name = "{}"
 "#,
         name,
+        VERSION,
         name.to_snake_case()
     )
 }
