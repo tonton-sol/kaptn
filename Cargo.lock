@@ -785,10 +785,9 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "hello-world"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
- "kaptn-lang 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "solana-program",
+ "kaptn-lang",
 ]
 
 [[package]]
@@ -887,18 +886,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-attribute-transfer-hook"
-version = "0.2.1"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "kaptn-attribute-transfer-hook"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9772147b35ea9a7a58d3492a6014c59e9f110c1eee21254cbe0ba316ab6cb573"
+version = "0.2.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -907,7 +895,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-cli"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "clap",
  "heck",
@@ -917,18 +905,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-derive-extrametas"
-version = "0.2.1"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "kaptn-derive-extrametas"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5dda5e74314c49478c841b8be1206836bb15873871aa5155c2f16c6a6a7ad5ba"
+version = "0.2.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -937,29 +914,12 @@ dependencies = [
 
 [[package]]
 name = "kaptn-lang"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "arrayref",
- "kaptn-attribute-transfer-hook 0.2.1",
- "kaptn-derive-extrametas 0.2.1",
- "kaptn-macros 0.2.1",
- "solana-program",
- "spl-tlv-account-resolution",
- "spl-token-2022",
- "spl-transfer-hook-interface",
- "spl-type-length-value",
-]
-
-[[package]]
-name = "kaptn-lang"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9704396a6d438d58fd1e599f05cccfb680a1f30ce589a043dd7e923bf9812722"
-dependencies = [
- "arrayref",
- "kaptn-attribute-transfer-hook 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "kaptn-derive-extrametas 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "kaptn-macros 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "kaptn-attribute-transfer-hook",
+ "kaptn-derive-extrametas",
+ "kaptn-macros",
  "solana-program",
  "spl-tlv-account-resolution",
  "spl-token-2022",
@@ -969,18 +929,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-macros"
-version = "0.2.1"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "kaptn-macros"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62e6ae15ff391b935d943e384371f075e9c399f00bd9b6bf7b89f74c8b131922"
+version = "0.2.2"
 dependencies = [
  "proc-macro2",
  "quote",

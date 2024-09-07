@@ -5,8 +5,7 @@ description = "Created with Kaptn"
 edition = "2021"
 
 [dependencies]
-kaptn-lang = { version = "0.2.2" }
-solana-program = "2.0.8"
+kaptn-lang = { path = "../../lang" }
 
 [lib]
 crate-type = ["cdylib", "lib"]
