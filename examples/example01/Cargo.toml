@@ -1,6 +1,6 @@
 [package]
 name = "hello-world"
-version = "0.2.2"
+version = "0.2.3"
 description = "Created with Kaptn"
 edition = "2021"
 

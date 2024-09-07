@@ -1,6 +1,6 @@
 [package]
 name = "kaptn-macros"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 description = "Macros for Kaptn Transfer-Hook Framework"
 repository = "https://github.com/tonton-sol/kaptn"
