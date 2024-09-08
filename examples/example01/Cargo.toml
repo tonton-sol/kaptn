@@ -3,6 +3,7 @@ name = "ahoy-world"
 version = "0.2.3"
 description = "Created with Kaptn"
 edition = "2021"
+publish = false
 
 [dependencies]
 kaptn-lang = { path = "../../lang" }
