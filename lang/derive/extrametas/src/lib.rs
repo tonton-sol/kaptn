@@ -78,7 +78,7 @@ pub fn derive_extra_metas(input: TokenStream) -> TokenStream {
     } else {
         quote! {
             fn from_accounts(accounts: &[AccountInfo]) -> Result<Self, ProgramError> {
-                let mut iter = accounts.iter().skip(5); // Adjust skip as needed
+                let mut iter = accounts.iter().skip(5); // Skip till the extra account metas
                 Ok(Self {
                     #(#field_names: iter.next().ok_or(ProgramError::NotEnoughAccountKeys)?.clone(),)*
                 })
