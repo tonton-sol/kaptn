@@ -1,6 +1,6 @@
 [package]
 name = "kaptn-derive-extrametas"
-version = "0.2.5"
+version = "0.2.6"
 edition = "2021"
 description = "ExtraMetas Derive for the Kaptn Transfer-Hook Framework"
 repository = "https://github.com/tonton-sol/kaptn"
