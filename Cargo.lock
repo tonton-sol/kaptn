@@ -52,7 +52,7 @@ dependencies = [
 
 [[package]]
 name = "ahoy-world"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "kaptn-lang",
 ]
@@ -886,7 +886,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-attribute-transfer-hook"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -895,7 +895,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-cli"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "clap",
  "heck",
@@ -905,7 +905,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-derive-extrametas"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -914,7 +914,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-lang"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "arrayref",
  "kaptn-attribute-transfer-hook",
@@ -929,7 +929,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-macros"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -1,6 +1,6 @@
 [package]
 name = "kaptn-attribute-transfer-hook"
-version = "0.2.3"
+version = "0.2.4"
 edition = "2021"
 description = "Transfer-Hook Attribute for the Kaptn Transfer-Hook Framework"
 repository = "https://github.com/tonton-sol/kaptn"
