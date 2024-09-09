@@ -40,7 +40,6 @@ pub mod spl_transfer_hook_interface {
 pub mod context;
 pub mod execute;
 pub mod initialize;
-pub mod processor;
 pub mod update;
 
 /// The prelude contains all commonly used components of the crate.
