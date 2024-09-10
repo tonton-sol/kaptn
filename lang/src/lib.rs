@@ -5,9 +5,6 @@ pub use kaptn_macros::{declare_id, declare_mint};
 pub use solana_program;
 
 pub mod context;
-pub mod execute;
-pub mod initialize;
-pub mod update;
 
 /// The prelude contains all commonly used components of the crate.
 /// All programs should include it via `use kaptn_lang::prelude::*;`.
@@ -24,6 +21,7 @@ pub mod prelude {
         entrypoint::ProgramResult,
         epoch_schedule::EpochSchedule,
         msg,
+        program::invoke_signed,
         program_error::ProgramError,
         pubkey::Pubkey,
         rent::Rent,
@@ -32,8 +30,17 @@ pub mod prelude {
         sysvar::Sysvar,
     };
 
-    pub use spl_tlv_account_resolution::account::ExtraAccountMeta;
+    pub use spl_tlv_account_resolution::{account::ExtraAccountMeta, state::ExtraAccountMetaList};
+    pub use spl_token_2022::{
+        extension::{
+            transfer_hook::TransferHookAccount, BaseStateWithExtensions, StateWithExtensions,
+        },
+        state::{Account, Mint},
+    };
     pub use spl_transfer_hook_interface::{
-        error::TransferHookError, instruction::TransferHookInstruction,
+        collect_extra_account_metas_signer_seeds,
+        error::TransferHookError,
+        get_extra_account_metas_address, get_extra_account_metas_address_and_bump_seed,
+        instruction::{ExecuteInstruction, TransferHookInstruction},
     };
 }

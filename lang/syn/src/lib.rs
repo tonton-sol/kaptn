@@ -20,10 +20,16 @@ fn generate(program: &TransferHookInput) -> proc_macro2::TokenStream {
     let entry = codegen::entry::generate(program);
     let processor = codegen::processor::generate(program);
     let user_defined_function = &program.item_fn;
+    let execute = codegen::execute::generate(program);
+    let initialize = codegen::initialize::generate(program);
+    let update = codegen::update::generate(program);
 
     quote! {
         #user_defined_function
         #entry
         #processor
+        #execute
+        #initialize
+        #update
     }
 }
