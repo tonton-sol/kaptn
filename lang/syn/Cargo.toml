@@ -1,0 +1,12 @@
+[package]
+name = "kaptn-syn"
+version = "0.2.6"
+edition = "2021"
+description = "Syntax parsing and code generation for Kaptn Transfer-Hook Framework"
+repository = "https://github.com/tonton-sol/kaptn"
+license = "Apache-2.0"
+
+[dependencies]
+syn = { version = "1.0", features = ["full"] }
+quote = "1.0"
+proc-macro2 = "1.0"

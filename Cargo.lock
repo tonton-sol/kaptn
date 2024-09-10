@@ -888,6 +888,7 @@ dependencies = [
 name = "kaptn-attribute-transfer-hook"
 version = "0.2.6"
 dependencies = [
+ "kaptn-syn",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
@@ -929,6 +930,15 @@ dependencies = [
 
 [[package]]
 name = "kaptn-macros"
+version = "0.2.6"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "kaptn-syn"
 version = "0.2.6"
 dependencies = [
  "proc-macro2",
