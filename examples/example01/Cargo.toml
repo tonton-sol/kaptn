@@ -1,6 +1,6 @@
 [package]
 name = "ahoy-world"
-version = "0.2.6"
+version = "0.2.7"
 description = "Created with Kaptn"
 edition = "2021"
 publish = false

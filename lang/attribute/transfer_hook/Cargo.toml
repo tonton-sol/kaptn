@@ -1,6 +1,6 @@
 [package]
 name = "kaptn-attribute-transfer-hook"
-version = "0.2.6"
+version = "0.2.7"
 edition = "2021"
 description = "Transfer-Hook Attribute for the Kaptn Transfer-Hook Framework"
 repository = "https://github.com/tonton-sol/kaptn"
@@ -13,4 +13,4 @@ proc-macro = true
 syn = { version = "1", features = ["full", "extra-traits", "parsing"] }
 quote = "1"
 proc-macro2 = "1"
-kaptn-syn = { path = "../../syn" }
+kaptn-syn = { version = "0.2.6", path = "../../syn" }
