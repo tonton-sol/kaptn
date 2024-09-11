@@ -12,7 +12,7 @@ pub fn generate(program: &TransferHookInput) -> proc_macro2::TokenStream {
             instruction_data: &[u8],
         ) -> ProgramResult {
 
-            if !check_mint(program_id) {
+            if !check_id(program_id) {
                 return Err(ProgramError::InvalidArgument);
             }
 
