@@ -15,6 +15,10 @@ pub fn generate(_program: &TransferHookInput) -> proc_macro2::TokenStream {
             let authority_info = next_account_info(account_info_iter)?;
             let _system_program_info = next_account_info(account_info_iter)?;
 
+            if !check_mint(mint_info.key) {
+                return Err(ProgramError::InvalidArgument);
+            }
+
             let mint_data = mint_info.try_borrow_data()?;
             let mint = StateWithExtensions::<Mint>::unpack(&mint_data)?;
             let mint_authority = mint
