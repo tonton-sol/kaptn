@@ -26,14 +26,13 @@ pub fn generate(_program: &TransferHookInput) -> proc_macro2::TokenStream {
             }
 
             let data = extra_account_metas_info.try_borrow_data()?;
-            if !data.is_empty() {
-                ExtraAccountMetaList::check_account_infos::<ExecuteInstruction>(
-                    accounts,
-                    &TransferHookInstruction::Execute { amount }.pack(),
-                    program_id,
-                    &data,
-                )?;
-            }
+
+            ExtraAccountMetaList::check_account_infos::<ExecuteInstruction>(
+                accounts,
+                &TransferHookInstruction::Execute { amount }.pack(),
+                program_id,
+                &data,
+            )?;
 
             let extra_metas = E::from_accounts(accounts)?;
 
