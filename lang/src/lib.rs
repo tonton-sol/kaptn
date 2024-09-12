@@ -30,17 +30,26 @@ pub mod prelude {
         sysvar::Sysvar,
     };
 
-    pub use spl_tlv_account_resolution::{account::ExtraAccountMeta, state::ExtraAccountMetaList};
+    pub use spl_tlv_account_resolution::{
+        account::ExtraAccountMeta, error::AccountResolutionError, seeds::Seed,
+        state::ExtraAccountMetaList,
+    };
+    pub use spl_token_2022;
     pub use spl_token_2022::{
         extension::{
-            transfer_hook::TransferHookAccount, BaseStateWithExtensions, StateWithExtensions,
+            transfer_hook::TransferHookAccount, BaseStateWithExtensions,
+            BaseStateWithExtensionsMut, ExtensionType, StateWithExtensions, StateWithExtensionsMut,
         },
-        state::{Account, Mint},
+        state::{Account, AccountState, Mint},
     };
     pub use spl_transfer_hook_interface::{
         collect_extra_account_metas_signer_seeds,
         error::TransferHookError,
         get_extra_account_metas_address, get_extra_account_metas_address_and_bump_seed,
-        instruction::{ExecuteInstruction, TransferHookInstruction},
+        instruction::{
+            execute_with_extra_account_metas, initialize_extra_account_meta_list,
+            update_extra_account_meta_list, ExecuteInstruction, TransferHookInstruction,
+        },
+        onchain,
     };
 }
