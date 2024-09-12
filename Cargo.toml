@@ -7,6 +7,7 @@ members = [
     "lang/attribute/*",
     "lang/derive/*",
     "lang/syn",
+    "tests/*",
 ]
 
 resolver = "2"

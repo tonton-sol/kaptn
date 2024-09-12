@@ -11,6 +11,11 @@ pub fn generate(program: &TransferHookInput) -> proc_macro2::TokenStream {
             accounts: &[AccountInfo],
             instruction_data: &[u8],
         ) -> ProgramResult {
+
+            if !check_id(program_id) {
+                return Err(ProgramError::InvalidArgument);
+            }
+
             process_instruction(program_id, accounts, instruction_data, #fn_name)
         }
     }
