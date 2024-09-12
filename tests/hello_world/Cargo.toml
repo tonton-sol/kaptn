@@ -1,0 +1,19 @@
+[package]
+name = "hello_world"
+version = "0.1.0"
+description = "Created with Kaptn"
+edition = "2021"
+
+[features]
+test-sbf = []
+
+[dependencies]
+kaptn-lang = { path = "../../lang" }
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "hello_world"
+
+[dev-dependencies]
+solana-program-test = "2.0.9"
+solana-sdk = "2.0.9"
