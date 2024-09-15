@@ -13,7 +13,7 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Parser)]
 #[command(
     name = "Kaptn CLI",
-    version = "0.1.0",
+    version = VERSION,
     about = "CLI for Kaptn Framework"
 )]
 struct Cli {
