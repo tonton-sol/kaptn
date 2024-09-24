@@ -147,6 +147,8 @@ fn create_extra_metas(
         .arg(config.mint_keypair)
         .arg("--url")
         .arg(config.rpc)
+        .arg("--mint-authority")
+        .arg(config.keypair)
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
 
@@ -175,6 +177,8 @@ fn update_extra_metas(
         .arg(config.mint_keypair)
         .arg("--url")
         .arg(config.rpc)
+        .arg("--mint-authority")
+        .arg(config.keypair)
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
 
