@@ -44,6 +44,14 @@ struct Cli {
         global = true
     )]
     keypair: Option<String>,
+
+    #[arg(
+        long,
+        value_name = "FEE_PAYER",
+        help = "Filepath or URL to a keypair to pay transaction fee [default:client keypair]",
+        global = true
+    )]
+    fee_payer: Option<String>,
 }
 
 #[derive(Parser)]
@@ -74,6 +82,15 @@ struct CreateExtraMetasArgs {}
 #[derive(Parser)]
 struct UpdateExtraMetasArgs {}
 
+struct Config {
+    rpc: String,
+    keypair: String,
+    fee_payer: Option<String>,
+    name: String,
+    program_keypair: String,
+    mint_keypair: String,
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -89,54 +106,55 @@ fn main() {
         solana_cli_config::Config::default()
     };
 
+    let config = Config {
+        rpc: cli.rpc.unwrap_or(cli_config.json_rpc_url),
+        keypair: cli.keypair.unwrap_or(cli_config.keypair_path),
+        fee_payer: cli.fee_payer,
+        name: get_project_name().unwrap(),
+        program_keypair: format!(
+            "target/deploy/{}-keypair.json",
+            get_project_name().unwrap().to_snake_case()
+        ),
+        mint_keypair: format!(
+            "target/deploy/{}-mint-keypair.json",
+            get_project_name().unwrap().to_snake_case()
+        ),
+    };
+
     match cli.command {
-        Commands::New(args) => new(args, cli_config).unwrap(),
-        Commands::CreateExtraMetas(args) => create_extra_metas(args, cli_config).unwrap(),
-        Commands::UpdateExtraMetas(args) => update_extra_metas(args, cli_config).unwrap(),
+        Commands::New(args) => new(args, config).unwrap(),
+        Commands::CreateExtraMetas(args) => create_extra_metas(args, config).unwrap(),
+        Commands::UpdateExtraMetas(args) => update_extra_metas(args, config).unwrap(),
     }
 }
 
-fn new(
-    args: NewArgs,
-    _cli_config: solana_cli_config::Config,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let name = args.name.unwrap_or_else(|| {
-        PathBuf::from(&args.path)
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string()
-    });
+fn new(args: NewArgs, config: Config) -> Result<(), Box<dyn std::error::Error>> {
+    let name = config.name;
 
     create_new_project(&args.path, &name)
 }
 
 fn create_extra_metas(
     _args: CreateExtraMetasArgs,
-    _cli_config: solana_cli_config::Config,
+    config: Config,
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("Creating extra account metas...");
-    let name = get_project_name()?;
 
-    let program_keypair_filepath =
-        Path::new("target/deploy").join(format!("{}-keypair.json", name.to_snake_case()));
-    let mint_keypair_filepath =
-        Path::new("target/deploy").join(format!("{}-mint-keypair.json", name.to_snake_case()));
-
-    let program_keypair = read_keypair_file(&program_keypair_filepath)?;
-    let mint_keypair = read_keypair_file(&mint_keypair_filepath)?;
-
-    let program_pubkey = program_keypair.pubkey();
-    let mint_pubkey = mint_keypair.pubkey();
-
-    let exit = std::process::Command::new("spl-transfer-hook")
+    let mut command = std::process::Command::new("spl-transfer-hook");
+    command
         .arg("create-extra-metas")
-        .arg(program_pubkey.to_string())
-        .arg(mint_pubkey.to_string())
+        .arg(config.program_keypair)
+        .arg(config.mint_keypair)
+        .arg("--url")
+        .arg(config.rpc)
         .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .output()?;
+        .stderr(Stdio::inherit());
+
+    if let Some(fee_payer) = config.fee_payer {
+        command.arg("--fee-payer").arg(fee_payer);
+    }
+
+    let exit = command.output()?;
 
     if !exit.status.success() {
         return Err(format!("There was a problem creating extra metas: {:?}", exit).into());
@@ -146,29 +164,25 @@ fn create_extra_metas(
 
 fn update_extra_metas(
     _args: UpdateExtraMetasArgs,
-    _cli_config: solana_cli_config::Config,
+    config: Config,
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("Updating extra account metas...");
-    let name = get_project_name()?;
 
-    let program_keypair_filepath =
-        Path::new("target/deploy").join(format!("{}-keypair.json", name.to_snake_case()));
-    let mint_keypair_filepath =
-        Path::new("target/deploy").join(format!("{}-mint-keypair.json", name.to_snake_case()));
-
-    let program_keypair = read_keypair_file(&program_keypair_filepath)?;
-    let mint_keypair = read_keypair_file(&mint_keypair_filepath)?;
-
-    let program_pubkey = program_keypair.pubkey();
-    let mint_pubkey = mint_keypair.pubkey();
-
-    let exit = std::process::Command::new("spl-transfer-hook")
+    let mut command = std::process::Command::new("spl-transfer-hook");
+    command
         .arg("update-extra-metas")
-        .arg(program_pubkey.to_string())
-        .arg(mint_pubkey.to_string())
+        .arg(config.program_keypair)
+        .arg(config.mint_keypair)
+        .arg("--url")
+        .arg(config.rpc)
         .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .output()?;
+        .stderr(Stdio::inherit());
+
+    if let Some(fee_payer) = config.fee_payer {
+        command.arg("--fee-payer").arg(fee_payer);
+    }
+
+    let exit = command.output()?;
 
     if !exit.status.success() {
         return Err(format!("There was a problem updating extra metas: {:?}", exit).into());
