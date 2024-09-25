@@ -62,6 +62,8 @@ enum Commands {
     CreateExtraMetas(CreateExtraMetasArgs),
     #[command(about = "Update the extra account metas")]
     UpdateExtraMetas(UpdateExtraMetasArgs),
+    #[command(about = "Deploy the program")]
+    Deploy(DeployArgs),
 }
 
 #[derive(Parser)]
@@ -81,6 +83,52 @@ struct CreateExtraMetasArgs {}
 
 #[derive(Parser)]
 struct UpdateExtraMetasArgs {}
+
+#[derive(Parser)]
+struct DeployArgs {
+    #[arg(
+        help_heading = "Flags",
+        long,
+        value_name = "USE_QUIC",
+        help = "Use QUIC when sending transactions."
+    )]
+    use_quic: bool,
+
+    #[arg(
+        help_heading = "Flags",
+        long,
+        value_name = "USE_RPC",
+        help = "Send write transactions to the configured RPC instead of validator TPUs."
+    )]
+    use_rpc: bool,
+
+    #[arg(
+        help_heading = "Flags",
+        long = "final",
+        value_name = "FINAL",
+        help = "The program will not be upgradeable."
+    )]
+    is_final: bool,
+
+    #[arg(
+        long,
+        value_name = "COMPUTE_UNIT_PRICE",
+        help = "Set compute unit price for transaction, in increments of 0.000001 lamports per compute unit."
+    )]
+    with_compute_unit_price: Option<String>,
+
+    #[arg(
+        long,
+        value_name = "MAX_SIGN_ATTEMPTS",
+        help = "Maximum number of attempts to sign or resign transactions after blockhash expiration. If any transactions
+            sent during the program deploy are still unconfirmed after the initially chosen recent blockhash expires,
+            those transactions will be resigned with a new recent blockhash and resent. Use this setting to adjust the
+            maximum number of transaction signing iterations. Each blockhash is valid for about 60 seconds, which means
+            using the default value of 5 will lead to sending transactions for at least 5 minutes or until all
+            transactions are confirmed,whichever comes first. [default: 5]"
+    )]
+    max_sign_attempts: Option<String>,
+}
 
 struct Config {
     rpc: String,
@@ -125,6 +173,7 @@ fn main() {
         Commands::New(args) => new(args, config).unwrap(),
         Commands::CreateExtraMetas(args) => create_extra_metas(args, config).unwrap(),
         Commands::UpdateExtraMetas(args) => update_extra_metas(args, config).unwrap(),
+        Commands::Deploy(args) => deploy(args, config).unwrap(),
     }
 }
 
@@ -132,6 +181,52 @@ fn new(args: NewArgs, config: Config) -> Result<(), Box<dyn std::error::Error>> 
     let name = config.name;
 
     create_new_project(&args.path, &name)
+}
+
+fn deploy(args: DeployArgs, config: Config) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Creating extra account metas...");
+
+    let mut command = std::process::Command::new("solana");
+    command
+        .arg("program")
+        .arg("deploy")
+        .arg(config.program_keypair)
+        .arg("--url")
+        .arg(config.rpc)
+        .arg("--upgrade-authority")
+        .arg(config.keypair)
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit());
+
+    if let Some(fee_payer) = config.fee_payer {
+        command.arg("--fee-payer").arg(fee_payer);
+    }
+
+    if let Some(max_sign_attempts) = args.max_sign_attempts {
+        command.arg("--max-sign-attempts").arg(max_sign_attempts);
+    }
+
+    if let Some(compute_unit_price) = args.with_compute_unit_price {
+        command.arg("--compute-unit-price").arg(compute_unit_price);
+    }
+
+    if args.is_final {
+        command.arg("--final");
+    }
+    if args.use_quic {
+        command.arg("--use-quic");
+    }
+    if args.use_rpc {
+        command.arg("--use-rpc");
+    }
+
+    let exit = command.output()?;
+
+    if !exit.status.success() {
+        return Err(format!("There was a problem deploying the program: {:?}", exit).into());
+    }
+
+    Ok(())
 }
 
 fn create_extra_metas(
