@@ -1,149 +1,291 @@
-use clap::{Arg, Command};
+use clap::Parser;
 use heck::ToSnakeCase;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::{read_keypair_file, write_keypair_file, Keypair};
 use solana_sdk::signer::Signer;
 use std::fs;
-use std::path::{Path, PathBuf};
-use std::process::{self, Stdio};
+use std::path::Path;
+use std::process::Stdio;
 use toml::Value;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+#[derive(Parser)]
+#[command(
+    name = "Kaptn CLI",
+    version = VERSION,
+    about = "CLI for Kaptn Framework"
+)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+
+    #[arg(
+        long,
+        value_name = "NETWORK_URL",
+        help = "Network address of your RPC provider",
+        global = true
+    )]
+    rpc: Option<String>,
+
+    #[clap(
+        global = true,
+        short = 'C',
+        long = "config",
+        id = "PATH",
+        help = "Filepath to config file."
+    )]
+    config_file: Option<String>,
+
+    #[arg(
+        long,
+        value_name = "KEYPAIR_FILEPATH",
+        help = "Filepath to signer keypair.",
+        global = true
+    )]
+    keypair: Option<String>,
+
+    #[arg(
+        long,
+        value_name = "FEE_PAYER",
+        help = "Filepath or URL to a keypair to pay transaction fee [default:client keypair]",
+        global = true
+    )]
+    fee_payer: Option<String>,
+}
+
+#[derive(Parser)]
+enum Commands {
+    #[command(about = "Create a new Kaptn project")]
+    New(NewArgs),
+    #[command(about = "Create the extra account metas")]
+    CreateExtraMetas(CreateExtraMetasArgs),
+    #[command(about = "Update the extra account metas")]
+    UpdateExtraMetas(UpdateExtraMetasArgs),
+    #[command(about = "Deploy the program")]
+    Deploy(DeployArgs),
+}
+
+#[derive(Parser)]
+struct NewArgs {
+    #[arg(help = "The path where to create the project")]
+    path: String,
+    #[arg(
+        long,
+        short,
+        help = "The name of the new project (defaults to directory name)"
+    )]
+    name: Option<String>,
+}
+
+#[derive(Parser)]
+struct CreateExtraMetasArgs {}
+
+#[derive(Parser)]
+struct UpdateExtraMetasArgs {}
+
+#[derive(Parser)]
+struct DeployArgs {
+    #[arg(
+        help_heading = "Flags",
+        long,
+        value_name = "USE_QUIC",
+        help = "Use QUIC when sending transactions."
+    )]
+    use_quic: bool,
+
+    #[arg(
+        help_heading = "Flags",
+        long,
+        value_name = "USE_RPC",
+        help = "Send write transactions to the configured RPC instead of validator TPUs."
+    )]
+    use_rpc: bool,
+
+    #[arg(
+        help_heading = "Flags",
+        long = "final",
+        value_name = "FINAL",
+        help = "The program will not be upgradeable."
+    )]
+    is_final: bool,
+
+    #[arg(
+        long,
+        value_name = "COMPUTE_UNIT_PRICE",
+        help = "Set compute unit price for transaction, in increments of 0.000001 lamports per compute unit."
+    )]
+    with_compute_unit_price: Option<String>,
+
+    #[arg(
+        long,
+        value_name = "MAX_SIGN_ATTEMPTS",
+        help = "Maximum number of attempts to sign or resign transactions after blockhash expiration. If any transactions
+            sent during the program deploy are still unconfirmed after the initially chosen recent blockhash expires,
+            those transactions will be resigned with a new recent blockhash and resent. Use this setting to adjust the
+            maximum number of transaction signing iterations. Each blockhash is valid for about 60 seconds, which means
+            using the default value of 5 will lead to sending transactions for at least 5 minutes or until all
+            transactions are confirmed,whichever comes first. [default: 5]"
+    )]
+    max_sign_attempts: Option<String>,
+}
+
+struct Config {
+    rpc: String,
+    keypair: String,
+    fee_payer: Option<String>,
+    name: String,
+    program_keypair: String,
+    mint_keypair: String,
+}
+
 fn main() {
-    let matches = Command::new("Kaptn CLI")
-        .version("0.1.0")
-        .about("CLI for Kaptn projects")
-        .subcommand(
-            Command::new("new")
-                .about("Create a new Kaptn project")
-                .arg(
-                    Arg::new("path")
-                        .required(true)
-                        .help("The path where to create the project"),
-                )
-                .arg(
-                    Arg::new("name")
-                        .long("name")
-                        .short('n')
-                        .help("The name of the new project (defaults to directory name)")
-                        .required(false),
-                ),
-        )
-        .subcommand(Command::new("create-extra-metas").about("Create the extra account metas"))
-        .subcommand(Command::new("update-extra-metas").about("Update the extra account metas"))
-        .get_matches();
+    let cli = Cli::parse();
 
-    match matches.subcommand() {
-        Some(("new", sub_matches)) => {
-            let path = sub_matches.get_one::<String>("path").unwrap();
-            let name = sub_matches
-                .get_one::<String>("name")
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| {
-                    PathBuf::from(path)
-                        .file_name()
-                        .unwrap()
-                        .to_str()
-                        .unwrap()
-                        .to_string()
-                });
+    // Load the config file from custom path, the default path, or use default config values
+    let cli_config = if let Some(config_file) = &cli.config_file {
+        solana_cli_config::Config::load(config_file).unwrap_or_else(|_| {
+            eprintln!("error: Could not find config file `{}`", config_file);
+            std::process::exit(1);
+        })
+    } else if let Some(config_file) = &*solana_cli_config::CONFIG_FILE {
+        solana_cli_config::Config::load(config_file).unwrap_or_default()
+    } else {
+        solana_cli_config::Config::default()
+    };
 
-            if let Err(err) = create_new_project(path, &name) {
-                eprintln!("Error creating project: {}", err);
-                process::exit(1);
-            }
-        }
-        Some(("create-extra-metas", _)) => {
-            println!("Creating extra account metas...");
-            let name = get_project_name().unwrap();
+    let config = Config {
+        rpc: cli.rpc.unwrap_or(cli_config.json_rpc_url),
+        keypair: cli.keypair.unwrap_or(cli_config.keypair_path),
+        fee_payer: cli.fee_payer,
+        name: get_project_name().unwrap(),
+        program_keypair: format!(
+            "target/deploy/{}-keypair.json",
+            get_project_name().unwrap().to_snake_case()
+        ),
+        mint_keypair: format!(
+            "target/deploy/{}-mint-keypair.json",
+            get_project_name().unwrap().to_snake_case()
+        ),
+    };
 
-            let program_keypair_filepath =
-                Path::new("target/deploy").join(format!("{}-keypair.json", name.to_snake_case()));
-            let mint_keypair_filepath = Path::new("target/deploy")
-                .join(format!("{}-mint-keypair.json", name.to_snake_case()));
-
-            let program_keypair = read_keypair_file(&program_keypair_filepath).unwrap();
-            let mint_keypair = read_keypair_file(&mint_keypair_filepath).unwrap();
-
-            let program_pubkey = program_keypair.pubkey();
-            let mint_pubkey = mint_keypair.pubkey();
-
-            let exit = std::process::Command::new("spl-transfer-hook")
-                .arg("create-extra-metas")
-                .arg(program_pubkey.to_string())
-                .arg(mint_pubkey.to_string())
-                .stdout(Stdio::inherit())
-                .stderr(Stdio::inherit())
-                .output()
-                .expect("Must create extra metas");
-
-            // Check if deployment was successful
-            if !exit.status.success() {
-                println!("There was a problem creating extra metas: {exit:?}.");
-                std::process::exit(exit.status.code().unwrap_or(1));
-            }
-        }
-        Some(("update-extra-metas", _)) => {
-            println!("Updating extra account metas...");
-            let name = get_project_name().unwrap();
-
-            let program_keypair_filepath =
-                Path::new("target/deploy").join(format!("{}-keypair.json", name.to_snake_case()));
-            let mint_keypair_filepath = Path::new("target/deploy")
-                .join(format!("{}-mint-keypair.json", name.to_snake_case()));
-
-            let program_keypair = read_keypair_file(&program_keypair_filepath).unwrap();
-            let mint_keypair = read_keypair_file(&mint_keypair_filepath).unwrap();
-
-            let program_pubkey = program_keypair.pubkey();
-            let mint_pubkey = mint_keypair.pubkey();
-
-            let exit = std::process::Command::new("spl-transfer-hook")
-                .arg("update-extra-metas")
-                .arg(program_pubkey.to_string())
-                .arg(mint_pubkey.to_string())
-                .stdout(Stdio::inherit())
-                .stderr(Stdio::inherit())
-                .output()
-                .expect("Must update extra metas");
-
-            // Check if deployment was successful
-            if !exit.status.success() {
-                println!("There was a problem creating extra metas: {exit:?}.");
-                std::process::exit(exit.status.code().unwrap_or(1));
-            }
-        }
-        _ => {
-            eprintln!("Please specify a subcommand. Run with --help for more information.");
-            process::exit(1);
-        }
+    match cli.command {
+        Commands::New(args) => new(args, config).unwrap(),
+        Commands::CreateExtraMetas(args) => create_extra_metas(args, config).unwrap(),
+        Commands::UpdateExtraMetas(args) => update_extra_metas(args, config).unwrap(),
+        Commands::Deploy(args) => deploy(args, config).unwrap(),
     }
 }
 
-fn create_new_project(path: &str, name: &str) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Creating new Kaptn project '{}' at: {}", name, path);
+fn new(args: NewArgs, config: Config) -> Result<(), Box<dyn std::error::Error>> {
+    let name = config.name;
 
-    // Create the project directory
-    fs::create_dir_all(path)?;
+    create_new_project(&args.path, &name)
+}
 
-    // Change to the project directory
-    std::env::set_current_dir(path)?;
+fn deploy(args: DeployArgs, config: Config) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Creating extra account metas...");
 
-    // Create Cargo.toml
-    let cargo_toml_content = create_cargo_toml_content(name);
+    let mut command = std::process::Command::new("solana");
+    command
+        .arg("program")
+        .arg("deploy")
+        .arg(config.program_keypair)
+        .arg("--url")
+        .arg(config.rpc)
+        .arg("--upgrade-authority")
+        .arg(config.keypair)
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit());
 
-    fs::write("Cargo.toml", cargo_toml_content)?;
+    if let Some(fee_payer) = config.fee_payer {
+        command.arg("--fee-payer").arg(fee_payer);
+    }
 
-    // Create src directory
-    fs::create_dir_all("src")?;
+    if let Some(max_sign_attempts) = args.max_sign_attempts {
+        command.arg("--max-sign-attempts").arg(max_sign_attempts);
+    }
 
-    // Create the program file
-    let lib_rs_content = create_program_content(name);
+    if let Some(compute_unit_price) = args.with_compute_unit_price {
+        command.arg("--compute-unit-price").arg(compute_unit_price);
+    }
 
-    fs::write("src/lib.rs", lib_rs_content)?;
+    if args.is_final {
+        command.arg("--final");
+    }
+    if args.use_quic {
+        command.arg("--use-quic");
+    }
+    if args.use_rpc {
+        command.arg("--use-rpc");
+    }
 
-    println!("Kaptn project '{}' created successfully at: {}", name, path);
+    let exit = command.output()?;
+
+    if !exit.status.success() {
+        return Err(format!("There was a problem deploying the program: {:?}", exit).into());
+    }
+
+    Ok(())
+}
+
+fn create_extra_metas(
+    _args: CreateExtraMetasArgs,
+    config: Config,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Creating extra account metas...");
+
+    let mut command = std::process::Command::new("spl-transfer-hook");
+    command
+        .arg("create-extra-metas")
+        .arg(config.program_keypair)
+        .arg(config.mint_keypair)
+        .arg("--url")
+        .arg(config.rpc)
+        .arg("--mint-authority")
+        .arg(config.keypair)
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit());
+
+    if let Some(fee_payer) = config.fee_payer {
+        command.arg("--fee-payer").arg(fee_payer);
+    }
+
+    let exit = command.output()?;
+
+    if !exit.status.success() {
+        return Err(format!("There was a problem creating extra metas: {:?}", exit).into());
+    }
+    Ok(())
+}
+
+fn update_extra_metas(
+    _args: UpdateExtraMetasArgs,
+    config: Config,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Updating extra account metas...");
+
+    let mut command = std::process::Command::new("spl-transfer-hook");
+    command
+        .arg("update-extra-metas")
+        .arg(config.program_keypair)
+        .arg(config.mint_keypair)
+        .arg("--url")
+        .arg(config.rpc)
+        .arg("--mint-authority")
+        .arg(config.keypair)
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit());
+
+    if let Some(fee_payer) = config.fee_payer {
+        command.arg("--fee-payer").arg(fee_payer);
+    }
+
+    let exit = command.output()?;
+
+    if !exit.status.success() {
+        return Err(format!("There was a problem updating extra metas: {:?}", exit).into());
+    }
     Ok(())
 }
 
@@ -218,23 +360,44 @@ pub struct MyExtraMetas {{}}
     )
 }
 
-fn get_project_name() -> Option<String> {
-    // Determine the path to Cargo.toml
-    let current_dir = std::env::current_dir().expect("Failed to get current directory");
+fn get_project_name() -> Result<String, Box<dyn std::error::Error>> {
+    let current_dir = std::env::current_dir()?;
     let cargo_toml_path = current_dir.join("Cargo.toml");
 
-    // Read the Cargo.toml file
-    let cargo_toml_content =
-        fs::read_to_string(&cargo_toml_path).expect("Failed to read Cargo.toml");
+    let cargo_toml_content = fs::read_to_string(&cargo_toml_path)?;
 
-    // Parse the Cargo.toml content
-    let cargo_toml: Value =
-        toml::from_str(&cargo_toml_content).expect("Failed to parse Cargo.toml");
+    let cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
 
-    // Extract the project name from [package] section
     cargo_toml
         .get("package")
         .and_then(|package| package.get("name"))
         .and_then(|name| name.as_str())
         .map(|name| name.to_string())
+        .ok_or_else(|| "Failed to get project name from Cargo.toml".into())
+}
+
+fn create_new_project(path: &str, name: &str) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Creating new Kaptn project '{}' at: {}", name, path);
+
+    // Create the project directory
+    fs::create_dir_all(path)?;
+
+    // Change to the project directory
+    std::env::set_current_dir(path)?;
+
+    // Create Cargo.toml
+    let cargo_toml_content = create_cargo_toml_content(name);
+
+    fs::write("Cargo.toml", cargo_toml_content)?;
+
+    // Create src directory
+    fs::create_dir_all("src")?;
+
+    // Create the program file
+    let lib_rs_content = create_program_content(name);
+
+    fs::write("src/lib.rs", lib_rs_content)?;
+
+    println!("Kaptn project '{}' created successfully at: {}", name, path);
+    Ok(())
 }
