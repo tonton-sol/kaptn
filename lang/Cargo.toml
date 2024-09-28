@@ -1,6 +1,6 @@
 [package]
 name = "kaptn-lang"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 description = "Kaptn Transfer-Hook Framework"
 repository = "https://github.com/tonton-sol/kaptn"
