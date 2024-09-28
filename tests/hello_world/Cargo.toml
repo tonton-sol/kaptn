@@ -3,6 +3,7 @@ name = "hello_world"
 version = "0.1.0"
 description = "Created with Kaptn"
 edition = "2021"
+publish = false
 
 [features]
 test-sbf = []
