@@ -64,6 +64,8 @@ enum Commands {
     UpdateExtraMetas(UpdateExtraMetasArgs),
     #[command(about = "Deploy the program")]
     Deploy(DeployArgs),
+    #[command(about = "Build the program")]
+    Build(BuildArgs),
 }
 
 #[derive(Parser)]
@@ -130,6 +132,9 @@ struct DeployArgs {
     max_sign_attempts: Option<String>,
 }
 
+#[derive(Parser)]
+struct BuildArgs {}
+
 struct Config {
     rpc: String,
     keypair: String,
@@ -174,6 +179,7 @@ fn main() {
         Commands::CreateExtraMetas(args) => create_extra_metas(args, config).unwrap(),
         Commands::UpdateExtraMetas(args) => update_extra_metas(args, config).unwrap(),
         Commands::Deploy(args) => deploy(args, config).unwrap(),
+        Commands::Build(args) => build(args, config).unwrap(),
     }
 }
 
@@ -181,6 +187,17 @@ fn new(args: NewArgs, config: Config) -> Result<(), Box<dyn std::error::Error>> 
     let name = config.name;
 
     create_new_project(&args.path, &name)
+}
+
+fn build(_args: BuildArgs, _config: Config) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Building the program...");
+
+    let mut command = std::process::Command::new("cargo");
+    command
+        .arg("build-bpf")
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit());
+    Ok(())
 }
 
 fn deploy(args: DeployArgs, config: Config) -> Result<(), Box<dyn std::error::Error>> {
