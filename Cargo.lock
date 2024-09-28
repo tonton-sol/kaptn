@@ -2064,7 +2064,7 @@ dependencies = [
 
 [[package]]
 name = "kaptn-derive-extrametas"
-version = "0.2.7"
+version = "0.3.0"
 dependencies = [
  "proc-macro2",
  "quote",
