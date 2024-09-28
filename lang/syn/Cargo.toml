@@ -1,6 +1,6 @@
 [package]
 name = "kaptn-syn"
-version = "0.2.7"
+version = "0.3.0"
 edition = "2021"
 description = "Syntax parsing and code generation for Kaptn Transfer-Hook Framework"
 repository = "https://github.com/tonton-sol/kaptn"
